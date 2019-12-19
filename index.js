@@ -1,14 +1,10 @@
 const
     fs = require("fs"),
     nconf = require("nconf"),
-    transform = require("stream-transform"),
     through2 = require("through2"),
-    JsonStreamStringify = require("json-stream-stringify"),
     csv = require("csv-parse");
 
-nconf.argv();
-nconf.required([
-    ]);
+nconf.argv().required([]);
 
 const quietMode = nconf.any("quiet", "q");
 
@@ -42,14 +38,8 @@ const convertDaylioRecord = record => {
     };
 };
 
-const daylioTransform = through2.obj(function(chunk, enc, callback) {
-    this.push(convertDaylioRecord(chunk));
-
-    return callback();
-});
-
-const stringify = through2.obj(function(chunk, enc, callback) {
-    this.push(`${JSON.stringify(chunk)}\n`);
+const map = f => through2.obj(function(chunk, enc, callback) {
+    this.push(f(chunk));
 
     return callback();
 });
@@ -61,14 +51,13 @@ const countProcessed = () => {
         report: () => processed,
         counter: () => processed++
     };
-}
+};
 
 const dueProcess = () => {
     process.stdin
         .pipe(parser)
-        .pipe(daylioTransform)
-        // .pipe(spy(counter))
-        .pipe(stringify)
+        .pipe(map(convertDaylioRecord))
+        .pipe(map(obj => `${JSON.stringify(obj)}\n`))
         .pipe(process.stdout)
         .on("finish", () => {
             const { lines, records } = parser.info;
@@ -82,12 +71,9 @@ log("Transfomring Daylio records to Exist events...")
 process.stdin.setEncoding('utf8');
 
 process.stdout.on("error", err => {
+    //handle closed pipe
     if(err.code == "EPIPE")
         process.exit(0);
 });
 
-
 dueProcess();
-
-// process.stdin.on("readable",
-//     dueProcess);

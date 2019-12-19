@@ -10,12 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "csv-parse": "^4.8.2",
-    "json": "^9.0.6",
-    "json-stream-stringify": "^2.0.2",
     "nconf": "^0.10.0",
-    "stream-transform": "^2.0.1",
-    "through2": "^3.0.1",
-    "through2-map": "^3.0.0",
-    "through2-spy": "^2.0.0"
+    "through2": "^3.0.1"
   }
 }
