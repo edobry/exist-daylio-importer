@@ -58,7 +58,7 @@ const countProcessed = () => {
     };
 };
 
-const dueProcess = () => {
+const processFile = () => {
     process.stdin.setEncoding('utf8');
 
     process.stdout.on("error", err => {
@@ -90,7 +90,7 @@ const auth = oauth2.create({
     }
 });
 
-const getAuthCode = () => {
+const getCode = () => {
     const authUrl = auth.authorizationCode.authorizeURL({
         redirect_uri: "https://localhost/",
         scope: "read+write"
@@ -99,7 +99,9 @@ const getAuthCode = () => {
     console.log(authUrl);
 };
 
-const getAccessToken = async code => {
+const getToken = async () => {
+    const code = nconf.get("code")
+
     const tokenConfig = {
         code,
         redirect_uri: 'http://localhost:3000/callback',
@@ -116,38 +118,57 @@ const getAccessToken = async code => {
     }
 };
 
-const getProfile = async () => {
-    const token = nconf.get("token.access_token");
-
-    const client = Wreck.defaults({
+const initExistClient = () =>
+    Wreck.defaults({
         baseUrl: "https://exist.io/api/1/",
         headers: {
-            "Authorization": `Bearer ${token}`
+            "Authorization": `Bearer ${nconf.get("token:access_token")}`
         }
     });
 
-    const promise = client.request("GET", "users/$self/today/");
+const existRequest = async (client, method, endpoint, callback) => {
+    const promise = client.request(method, endpoint);
     try {
         const res = await promise;
         const body = await Wreck.read(res, {
             json: true
         });
 
-        console.log(JSON.stringify(body, null, 4));
+        return body;
     } catch(e) {
         throw new Error(e);
     }
+};
+
+const logJSON = obj => console.log(JSON.stringify(obj, null, 4));
+
+const endpoint = (method, path, handler, body) => async () => {
+     console.log(nconf.get("token:access_token"))
+     const body = await existRequest(initExistClient(), method, path);
+     handler(body);
 }
 
-const action = nconf.get("action");
+const getProfile = endpoint("GET", "users/$self/today/", profile => {
+    console.log("got profile");
+    logJSON(profile);
+});
 
-if(action == "process")
-    dueProcess();
-else if(action == "getCode")
-    getAuthCode();
-else if(action == "getToken")
-    getAccessToken(nconf.get("code"));
-else if(action == "getProfile")
-    getProfile();
-else
-    throw new Error(`Invalid action '${action}'`)
+const listOwnedAttributes = endpoint("GET", "attributes/owned/", ownedAttrs => {
+    logJSON(ownedAttrs);
+});
+
+const acquireAttributes = endpoint("POST", "attributes/acquire/", ownedAttrs => {
+    logJSON(ownedAttrs);
+});
+
+const actions = {
+    processFile, getCode, getToken, getProfile, listOwnedAttributes, acquireAttributes
+};
+
+const requestedAction = nconf.get("action");
+
+const actionHandler = actions[requestedAction];
+if(!actionHandler)
+    throw new Error(`Invalid action '${requestedAction}'`)
+
+actionHandler();
