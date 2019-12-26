@@ -2,6 +2,7 @@ const
     fs = require("fs"),
     nconf = require("nconf"),
     through2 = require("through2"),
+    toArray = require("stream-to-array"),
     csv = require("csv-parse"),
     oauth2 = require("simple-oauth2"),
     Wreck = require('@hapi/wreck');
@@ -58,7 +59,7 @@ const countProcessed = () => {
     };
 };
 
-const processFile = () => {
+const streamDaylioExport = () => {
     process.stdin.setEncoding('utf8');
 
     process.stdout.on("error", err => {
@@ -69,9 +70,20 @@ const processFile = () => {
 
     log("Transfomring Daylio records to Exist events...");
 
-    process.stdin
+    return process.stdin
         .pipe(parser)
         .pipe(map(convertDaylioRecord))
+};
+
+const readDaylioExport = () =>
+    toArray(streamDaylioExport())
+
+const processFile = () =>
+    pipeToStdout(
+        streamDaylioExport());
+
+const pipeToStdout = stream => {
+    stream
         .pipe(map(obj => `${JSON.stringify(obj)}\n`))
         .pipe(process.stdout)
         .on("finish", () => {
