@@ -102,11 +102,13 @@ const auth = oauth2.create({
     }
 });
 
+const oauthConf = {
+    redirect_uri: "https://localhost/",
+    scope: "read+write+append"
+};
+
 const getCode = () => {
-    const authUrl = auth.authorizationCode.authorizeURL({
-        redirect_uri: "https://localhost/",
-        scope: "read+write"
-    });
+    const authUrl = auth.authorizationCode.authorizeURL(oauthConf);
 
     console.log(authUrl);
 };
@@ -116,8 +118,7 @@ const getToken = async () => {
 
     const tokenConfig = {
         code,
-        redirect_uri: 'http://localhost:3000/callback',
-        scope: "read+write"
+        ...oauthConf
     };
 
     try {
