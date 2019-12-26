@@ -170,14 +170,90 @@ const listOwnedAttributes = async () => {
     const ownedAttrs = await existRequest("GET", "attributes/owned/");
     
     logJSON(ownedAttrs);
-});
+};
 
-const acquireAttributes = endpoint("POST", "attributes/acquire/", ownedAttrs => {
-    logJSON(ownedAttrs);
-});
+const acquireAttributes = async () => {
+    const attrsToAcquire = nconf.get("attrs").split(',');
+    console.log(attrsToAcquire);
+
+    const body = attrsToAcquire.map(attr => ({
+        name: attr,
+        active: true
+    }));
+
+    logJSON(body);
+
+    const result = await existRequest("POST", "attributes/acquire/", body);
+
+    logJSON(result);
+};
+
+const appendTags = async () => {
+    const tags = nconf.get("tags").split(',');
+    console.log(tags);
+
+    const body = tags.map(tag => ({
+        value: tag
+    }));
+
+    return appendTagsEndpoint(body);
+};
+
+const appendTagsEndpoint = async tags => {
+    const { failed, success } = await existRequest("POST", "attributes/custom/append/", tags);
+
+    console.log(`Result: ${success.length} suceeded, ${failed.length} failed`);
+    if(failed)
+        logJSON(failed);
+};
+
+const updateAttributes = async attrs => {
+    const { failed, success } = await existRequest("POST", "attributes/update/", attrs);
+
+    console.log(`Result: ${success.length} suceeded, ${failed.length} failed`);
+    if(failed)
+        logJSON(failed);
+};
+
+const normalizeTag = tag =>
+    tag.replace(' ', '_');
+
+const syncDaylio = async () => {
+    const records = await readDaylioExport();
+
+    const { mood, tags } = records.reduce((agg, { date, tags, mood }) => {
+        agg.mood.push({
+            date,
+            name: "mood",
+            value: mood[1]
+        });
+
+        agg.tags = agg.tags.concat(
+            tags
+                .filter(tag => tag.length > 0)
+                .map(tag => ({
+                    date,
+                    value: normalizeTag(tag)
+                }))
+        );
+
+        return agg;
+    }, {
+        mood: [], tags: []
+    });
+
+    console.log(`Syncing ${mood.length} mood records to daylio`);
+    await updateAttributes(mood);
+
+    console.log(`Syncing ${tags.length} tags to daylio....`);
+    await appendTagsEndpoint(tags);
+
+    console.log("done!")
+};
 
 const actions = {
-    processFile, getCode, getToken, getProfile, listOwnedAttributes, acquireAttributes
+    processFile, getCode, getToken, getProfile, listOwnedAttributes,
+    acquireAttributes, appendTags, syncDaylio
 };
 
 const requestedAction = nconf.get("action");
