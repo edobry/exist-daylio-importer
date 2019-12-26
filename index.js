@@ -139,11 +139,16 @@ const initExistClient = () =>
         }
     });
 
-const existRequest = async (client, method, endpoint, callback) => {
-    const promise = client.request(method, endpoint);
+const existRequest = async (method, endpoint, body) => {
+    const client = initExistClient();
+
+    const options = {};
+    if(body)
+        options.payload = body;
+
     try {
-        const res = await promise;
-        const body = await Wreck.read(res, {
+        const response = await client.request(method, endpoint, options);
+        const body = await Wreck.read(response, {
             json: true
         });
 
@@ -155,18 +160,15 @@ const existRequest = async (client, method, endpoint, callback) => {
 
 const logJSON = obj => console.log(JSON.stringify(obj, null, 4));
 
-const endpoint = (method, path, handler, body) => async () => {
-     console.log(nconf.get("token:access_token"))
-     const body = await existRequest(initExistClient(), method, path);
-     handler(body);
-}
+const getProfile = async () => {
+    const profile = await existRequest("GET", "users/$self/today/");
 
-const getProfile = endpoint("GET", "users/$self/today/", profile => {
-    console.log("got profile");
     logJSON(profile);
-});
+};
 
-const listOwnedAttributes = endpoint("GET", "attributes/owned/", ownedAttrs => {
+const listOwnedAttributes = async () => {
+    const ownedAttrs = await existRequest("GET", "attributes/owned/");
+    
     logJSON(ownedAttrs);
 });
 
