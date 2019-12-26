@@ -31,7 +31,9 @@ const moods = {
     "meh": 3,
     "uneasy": 3,
     "sober": 4,
-    "annoyed": 2
+    "annoyed": 2,
+    "bad": 2,
+    "awful": 1
 };
 
 const convertDaylioRecord = record => {
