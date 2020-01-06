@@ -1,5 +1,7 @@
 const
-    nconf = require("nconf");
+    nconf = require("nconf"),
+
+    { streamDaylioExport } = require("./daylioParser");
 
 nconf.argv().file("conf.json")
     .defaults({
