@@ -1,5 +1,7 @@
 const
     { log, logJSON } = require("./util"),
+
+    { readDaylioExport, parseDaylioCsv } = require("./daylioParser");
     syncDaylio = require("./syncDaylio");
 
 exports.handler = async function(event, context) {
@@ -7,8 +9,13 @@ exports.handler = async function(event, context) {
     logJSON((event);
 
     //parse zapier-mediated google drive webhook event
+    const { file } = event.payload;
+
+    log("Parsing file...")
+    const records = await parseDaylioCsv(file);
 
     //download google drive file
 
-    syncDaylio(/* pass downloaded file in */)
+    log("Syncing to Exist...")
+    syncDaylio(records);
 };
