@@ -1,5 +1,6 @@
 const
     fs = require("fs"),
+    Readable = require("stream").Readable,
 
     util = require("./util"),
 
@@ -49,8 +50,8 @@ const countProcessed = () => {
     };
 };
 
-const streamDaylioExport = () => {
-    process.stdin.setEncoding('utf8');
+const readStream = stream => {
+    stream.setEncoding('utf8');
 
     process.stdout.on("error", err => {
         //handle closed pipe
@@ -60,14 +61,32 @@ const streamDaylioExport = () => {
 
     log("Transfomring Daylio records to Exist events...");
 
-    return process.stdin
-        .pipe(parser)
-        .pipe(map(convertDaylioRecord))
+    return stream;
 };
 
-const readDaylioExport = () =>
-    toArray(streamDaylioExport())
+const parseDaylioCsvStream = stream =>
+    stream
+        .pipe(parser)
+        .pipe(map(convertDaylioRecord));
+
+const parseDaylioCsv = content =>
+    toArray(
+        parseDaylioCsvStream(
+            stringToStream(content)));
+
+const readDaylioExportStream = stream =>
+    toArray(
+        streamDaylioExport(stream));
+
+const stringToStream = content => {
+    const stream = new Readable();
+    stream._read = () => {};
+    stream.push(content);
+    stream.push(null);
+
+    return stream;
+};
 
 module.exports = {
-    streamDaylioExport, readDaylioExport
+    streamDaylioExport, readDaylioExport, readDaylioExportStream, parseDaylioCsv
 };
