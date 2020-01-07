@@ -1,14 +1,11 @@
 const
     { log, logJSON } = require("./util"),
-    { readDaylioExport } = require("./daylioParser"),
     { updateAttributes, appendTagsEndpoint } = require("./existApi");
 
 const normalizeTag = tag =>
     tag.replace(' ', '_');
 
-module.exports = async () => {
-    const records = await readDaylioExport();
-
+module.exports = async records => {
     const { mood, tags } = records.reduce((agg, { date, tags, mood }) => {
         agg.mood.push({
             date,
