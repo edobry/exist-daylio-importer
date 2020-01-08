@@ -1,17 +1,28 @@
 const
-    nconf = require("nconf"),
+    fs = require("fs"),
 
-    { streamDaylioExport } = require("./daylioParser");
+    nconf = require("nconf");
 
-nconf.argv().file("conf.json")
+nconf.argv().file("./conf.json")
     .defaults({
         action: "process"
     });
 
 const
-    { log, logJSON } = require("./util");
+    { log, logJSON } = require("./util"),
+
+    { streamDaylioExport } = require("./daylioParser"),
+    { getCode, getToken, getProfile, listOwnedAttributes, acquireAttributes, appendTags } = require("./existApi"),
+    { parseAndSyncDaylio } = require("./syncDaylio");
+
 
 const pipeToStdout = stream => {
+    process.stdout.on("error", err => {
+        //handle closed pipe
+        if(err.code == "EPIPE")
+            process.exit(0);
+    });
+
     stream
         .pipe(map(obj => `${JSON.stringify(obj)}\n`))
         .pipe(process.stdout)
@@ -26,9 +37,12 @@ const processFile = () =>
     pipeToStdout(
         streamDaylioExport());
 
+const syncDaylioFile = () =>
+    parseAndSyncDaylio(fs.readFileSync(nconf.get("file")));
+
 const actions = {
     processFile, getCode, getToken, getProfile, listOwnedAttributes,
-    acquireAttributes, appendTags, syncDaylio
+    acquireAttributes, appendTags, syncDaylioFile
 };
 
 const requestedAction = nconf.get("action");

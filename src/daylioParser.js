@@ -50,29 +50,21 @@ const countProcessed = () => {
     };
 };
 
-const readStream = stream => {
-    stream.setEncoding('utf8');
-
-    process.stdout.on("error", err => {
-        //handle closed pipe
-        if(err.code == "EPIPE")
-            process.exit(0);
-    });
-
-    log("Transfomring Daylio records to Exist events...");
-
-    return stream;
-};
-
 const parseDaylioCsvStream = stream =>
     stream
         .pipe(parser)
         .pipe(map(convertDaylioRecord));
 
+const parseDaylioCsvFromStdin = () =>
+    parseDaylioCsvStream(process.stdin);
+
 const parseDaylioCsv = content =>
     toArray(
         parseDaylioCsvStream(
             stringToStream(content)));
+
+const streamDaylioExport = stream =>
+    stream.setEncoding('utf8');
 
 const readDaylioExportStream = stream =>
     toArray(
@@ -88,5 +80,5 @@ const stringToStream = content => {
 };
 
 module.exports = {
-    streamDaylioExport, readDaylioExport, readDaylioExportStream, parseDaylioCsv
+    streamDaylioExport, parseDaylioCsvFromStdin, parseDaylioCsv, parseDaylioCsv
 };

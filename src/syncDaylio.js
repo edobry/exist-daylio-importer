@@ -1,11 +1,22 @@
 const
     { log, logJSON } = require("./util"),
+    { parseDaylioCsv } = require("./daylioParser"),
     { updateAttributes, appendTagsEndpoint } = require("./existApi");
 
 const normalizeTag = tag =>
     tag.replace(' ', '_');
 
-module.exports = async records => {
+const parseAndSyncDaylio = async file => {
+    log("Parsing file...")
+    const records = await parseDaylioCsv(file);
+
+    log(records);
+
+    log("Syncing to Exist...")
+    syncToExist(records);
+};
+
+const syncToExist = async records => {
     const { mood, tags } = records.reduce((agg, { date, tags, mood }) => {
         agg.mood.push({
             date,
@@ -35,3 +46,5 @@ module.exports = async records => {
 
     log("done!")
 };
+
+module.exports = { parseAndSyncDaylio, syncToExist };
