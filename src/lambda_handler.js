@@ -16,7 +16,7 @@ exports.handler = async (event, context) => {
     logJSON(event);
 
     //parse zapier-mediated google drive webhook event
-    const { file } = event.payload;
+    const { file } = event;
 
     log(file);
 
