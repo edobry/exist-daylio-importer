@@ -1,14 +1,14 @@
 const
     Readable = require("stream").Readable,
 
-
     through2 = require("through2"),
     toArray = require("stream-to-array"),
     csv = require("csv-parse");
 
 const parser = csv({
     delimeter: ',',
-    columns: true
+    columns: true,
+    quote: "'"
 })
 
 const moods = {
