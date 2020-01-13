@@ -1,8 +1,6 @@
 const
-    fs = require("fs"),
     Readable = require("stream").Readable,
 
-    util = require("./util"),
 
     through2 = require("through2"),
     toArray = require("stream-to-array"),
@@ -26,7 +24,7 @@ const moods = {
 };
 
 const convertDaylioRecord = record => {
-    const { "﻿full_date": date, time, mood, activities, note } = record;
+    const { "full_date": date, time, mood, activities } = record;
 
     return {
         date, time,
@@ -40,15 +38,6 @@ const map = f => through2.obj(function(chunk, enc, callback) {
 
     return callback();
 });
-
-const countProcessed = () => {
-    let processed = 0;
-
-    return {
-        report: () => processed,
-        counter: () => processed++
-    };
-};
 
 const parseDaylioCsvStream = stream =>
     stream
@@ -66,10 +55,6 @@ const parseDaylioCsv = content =>
 const streamDaylioExport = stream =>
     stream.setEncoding('utf8');
 
-const readDaylioExportStream = stream =>
-    toArray(
-        streamDaylioExport(stream));
-
 const stringToStream = content => {
     const stream = new Readable();
     stream._read = () => {};
@@ -80,5 +65,5 @@ const stringToStream = content => {
 };
 
 module.exports = {
-    streamDaylioExport, parseDaylioCsvFromStdin, parseDaylioCsv, parseDaylioCsv
+    streamDaylioExport, parseDaylioCsvFromStdin, parseDaylioCsv
 };

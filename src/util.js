@@ -10,6 +10,6 @@ util.log = message => {
         console.log(message)
 };
 
-util.logJSON = obj => log(JSON.stringify(obj, null, 4));
+util.logJSON = obj => util.log(JSON.stringify(obj, null, 4));
 
 module.exports = util;

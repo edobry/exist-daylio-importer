@@ -5,6 +5,9 @@ const
     oauth2 = require("simple-oauth2"),
     Wreck = require('@hapi/wreck');
 
+const client = nconf.get("client");
+logJSON(client);
+
 const auth = oauth2.create({
     client: nconf.get("client"),
     auth: {
@@ -19,13 +22,15 @@ const oauthConf = {
     scope: "read+write+append"
 };
 
-const getCode = () => {
+const methods = {};
+
+methods.getCode = () => {
     const authUrl = auth.authorizationCode.authorizeURL(oauthConf);
 
     log(authUrl);
 };
 
-const getToken = async () => {
+methods.getToken = async () => {
     const code = nconf.get("code")
 
     const tokenConfig = {
@@ -70,8 +75,6 @@ const existRequest = async (method, endpoint, body) => {
     }
 };
 
-const methods = {};
-
 methods.getProfile = async () => {
     const profile = await existRequest("GET", "users/$self/today/");
 
@@ -108,7 +111,7 @@ methods.appendTags = async () => {
         value: tag
     }));
 
-    return appendTagsEndpoint(body);
+    return methods.appendTagsEndpoint(body);
 };
 
 methods.appendTagsEndpoint = async tags => {
