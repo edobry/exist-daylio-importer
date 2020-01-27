@@ -15,5 +15,8 @@
     "simple-oauth2": "^3.1.0",
     "stream-to-array": "^2.3.0",
     "through2": "^3.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0"
   }
 }
