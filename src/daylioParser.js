@@ -1,20 +1,27 @@
 const
     Readable = require("stream").Readable,
 
+    { log, logJSON } = require("./util"),
+
     through2 = require("through2"),
     toArray = require("stream-to-array"),
-    csv = require("csv-parse");
+    csv = require("csv-parse"),
+    parseSync = require("csv-parse/lib/sync");
 
-const parser = csv({
+const parserConfig = {
     delimeter: ',',
     columns: true,
     quote: "'"
-})
+};
+
+const parser = csv(parserConfig);
 
 const moods = {
     "rad": 5,
     "content": 5,
+    "excited": 5,
     "good": 4,
+    "alright": 4,
     "meh": 3,
     "uneasy": 3,
     "sober": 4,
@@ -47,10 +54,13 @@ const parseDaylioCsvStream = stream =>
 const parseDaylioCsvFromStdin = () =>
     parseDaylioCsvStream(process.stdin);
 
-const parseDaylioCsv = content =>
-    toArray(
-        parseDaylioCsvStream(
-            stringToStream(content)));
+const parseDaylioCsv = content => {
+    const cleanedContent = content
+        .replace(/"/g, "'");
+
+    const parsedRecords = parseSync(cleanedContent, parserConfig);
+    return parsedRecords.map(convertDaylioRecord);
+};
 
 const streamDaylioExport = stream =>
     stream.setEncoding('utf8');

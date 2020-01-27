@@ -8,8 +8,9 @@ const normalizeTag = tag =>
 
 const parseAndSyncDaylio = async file => {
     log("Parsing file...")
-    const records = await parseDaylioCsv(file);
+    const records = parseDaylioCsv(file);
 
+    log("Parsed: ");
     log(records);
 
     log("Syncing to Exist...")
