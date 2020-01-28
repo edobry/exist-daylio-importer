@@ -1,48 +1,82 @@
 const
     fs = require("fs"),
-    readline = require("readline"),
 
     { log, logJSON } = require("./util"),
 
     nconf = require("nconf"),
     { google } = require("googleapis");
 
-nconf.file("google-cred", "./exist-daylio-importer-63ecb1859a91.json");
+const creds = JSON.parse(fs.readFileSync("./exist-daylio-importer-63ecb1859a91.json", "UTF-8"));
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
 
-const TOKEN_PATH = 'token.json';
+// const credentials = fs.readFileSync('credentials.json', "UTF-8");
 
-const credentials = fs.readFileSync('credentials.json', "UTF-8");
+const authorize = () => {
+    logJSON(creds)
 
-authorize(JSON.parse(credentials), listFiles);
+    const client = google.auth.fromJSON(creds);
+    client.scopes = ["https://www.googleapis.com/auth/drive.readonly"];
 
-const authorize = (credentials, callback) => {
-    const { client_secret, client_id, redirect_uris }
-        = credentials.installed;
-
-    const oAuth2Client = new google.auth.OAuth2(
-        client_id, client_secret, redirect_uris[0]);
-
-    //TODO
+    return client;
 };
 
+const folderMimeType = "application/vnd.google-apps.folder";
 
-function listFiles(auth) {
-  const drive = google.drive({version: 'v3', auth});
-  drive.files.list({
-    pageSize: 10,
-    fields: 'nextPageToken, files(id, name)',
-  }, (err, res) => {
-    if (err) return console.log('The API returned an error: ' + err);
-    const files = res.data.files;
-    if (files.length) {
-      console.log('Files:');
-      files.map((file) => {
-        console.log(`${file.name} (${file.id})`);
-      });
-    } else {
-      console.log('No files found.');
-    }
-  });
-}
+const daylioQuery = `mimeType='${folderMimeType}' and name='Daylio'`;
+
+const drive = google.drive({
+    version: 'v3',
+    auth: authorize()
+});
+
+const queryFiles = (query, callback) =>
+    drive.files.list({
+        q: query,
+        pageSize: 10,
+        fields: 'nextPageToken, files(id, name)',
+    }, callback);
+
+const listFiles = () => {
+    queryFiles(daylioQuery, (err, res) => {
+        if(err) {
+            log('The API returned an error: ' + err);
+            return;
+        }
+
+        const files = res.data.files;
+
+        //TODO: log debug
+        // logJSON(res);
+
+        if(files.length) {
+            log('Files:');
+            files.map(({ name, id }) => {
+                log(`${name} (${id})`);
+
+                queryFiles(`'${id} in parents'`, (err, res) => {
+                    if(err) {
+                        log('The API returned an error: ' + err);
+                        return;
+                    }
+
+                    const files = res.data.files;
+
+                    //TODO: log debug
+                    // logJSON(res);
+
+                    if(files.length) {
+                        log('Files:');
+                        files.map(({ name, id }) =>
+                            log(`${name} (${id})`));
+                    } else
+                        log('No files found.');
+                });
+            });
+
+        } else
+            log('No files found.');
+    });
+};
+
+module.exports = { listFiles };

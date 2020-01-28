@@ -1,6 +1,5 @@
 const
     fs = require("fs"),
-    readline = require("readline"),
 
     nconf = require("nconf");
 
@@ -14,7 +13,8 @@ const
 
     { streamDaylioExport } = require("./daylioParser"),
     { getCode, getToken, getProfile, listOwnedAttributes, acquireAttributes, appendTags } = require("./existApi"),
-    { parseAndSyncDaylio } = require("./syncDaylio");
+    { parseAndSyncDaylio } = require("./syncDaylio"),
+    { authorize, listFiles } = require("./driveApi");
 
 
 const pipeToStdout = stream => {
@@ -44,11 +44,11 @@ const syncDaylioFile = async () => {
     await parseAndSyncDaylio(file);
 
     log("Done!");
-}
+};
 
 const actions = {
     processFile, getCode, getToken, getProfile, listOwnedAttributes,
-    acquireAttributes, appendTags, syncDaylioFile
+    acquireAttributes, appendTags, syncDaylioFile, listFiles
 };
 
 const requestedAction = nconf.get("action");
