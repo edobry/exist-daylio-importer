@@ -30,9 +30,10 @@ const syncToExist = async records => {
         agg.tags = agg.tags.concat(
             tags
                 .filter(tag => tag.length > 0)
-                .map(tag => ({
+                .map(normalizeTag)
+                .map(value => ({
                     date,
-                    value: normalizeTag(tag)
+                    value
                 }))
         );
 
@@ -41,10 +42,10 @@ const syncToExist = async records => {
         mood: [], tags: []
     });
 
-    log(`Syncing ${mood.length} mood records to daylio`);
+    log(`Syncing ${mood.length} mood records...`);
     await updateAttributes(mood);
 
-    log(`Syncing ${tags.length} tags to daylio....`);
+    log(`Syncing ${tags.length} tags...`);
     await appendTagsEndpoint(tags);
 };
 
