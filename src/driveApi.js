@@ -8,75 +8,98 @@ const
 
 const creds = JSON.parse(fs.readFileSync("./exist-daylio-importer-63ecb1859a91.json", "UTF-8"));
 
-const SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
-
-// const credentials = fs.readFileSync('credentials.json', "UTF-8");
+const driveReadOnlyScope = "https://www.googleapis.com/auth/drive.readonly";
 
 const authorize = () => {
-    logJSON(creds)
-
     const client = google.auth.fromJSON(creds);
-    client.scopes = ["https://www.googleapis.com/auth/drive.readonly"];
+    client.scopes = [driveReadOnlyScope];
 
     return client;
 };
-
-const folderMimeType = "application/vnd.google-apps.folder";
-
-const daylioQuery = `mimeType='${folderMimeType}' and name='Daylio'`;
 
 const drive = google.drive({
     version: 'v3',
     auth: authorize()
 });
 
-const queryFiles = (query, callback) =>
-    drive.files.list({
-        q: query,
-        pageSize: 10,
-        fields: 'nextPageToken, files(id, name)',
-    }, callback);
+const folderMimeType = "application/vnd.google-apps.folder";
 
-const listFiles = () => {
-    queryFiles(daylioQuery, (err, res) => {
-        if(err) {
-            log('The API returned an error: ' + err);
-            return;
-        }
+const folderNamed = name =>
+    `mimeType='${folderMimeType}' and name='${name}'`;
 
-        const files = res.data.files;
+const childOf = parentId =>
+    `'${parentId}' in parents`;
 
-        //TODO: log debug
-        // logJSON(res);
+const queryDrive = async query => {
+    let result;
+    try {
+        result = await drive.files.list({
+            q: query,
+            pageSize: 10,
+            fields: 'nextPageToken, files(id, name, createdTime)',
+        });
+    } catch({ errors }) {
+        log("The API request errored:");
+        errors.forEach(({ domain, reason, message, locationType, location }) =>
+            log(`${message} for ${domain} ${locationType} '${location}': ${reason}`));
 
-        if(files.length) {
-            log('Files:');
-            files.map(({ name, id }) => {
-                log(`${name} (${id})`);
+        logJSON(errors);
+        return [];
+    }
 
-                queryFiles(`'${id} in parents'`, (err, res) => {
-                    if(err) {
-                        log('The API returned an error: ' + err);
-                        return;
-                    }
+    const { data: { files } } = result;
 
-                    const files = res.data.files;
+    if(!files.length) {
+        log('No files found.');
+        return [];
+    }
 
-                    //TODO: log debug
-                    // logJSON(res);
-
-                    if(files.length) {
-                        log('Files:');
-                        files.map(({ name, id }) =>
-                            log(`${name} (${id})`));
-                    } else
-                        log('No files found.');
-                });
-            });
-
-        } else
-            log('No files found.');
-    });
+    return files;
 };
 
-module.exports = { listFiles };
+const getLatestDaylioExport = async () => {
+    const folders = await queryDrive(
+        folderNamed("Daylio"));
+
+    if(folders.length > 1)
+        throw new Error("More than one Daylio folder found!");
+
+    const { id: daylioFolderId } = folders[0];
+
+    log(`Daylio folder id: ${daylioFolderId}`);
+
+    const daylioExports = await queryDrive(
+        childOf(daylioFolderId));
+
+    // logJSON(daylioExports);
+
+    const mostRecent = daylioExports
+        .filter(({ name }) =>
+            name.includes("daylio_export"))
+        .reduce((a, b) =>
+            new Date(a.createdTime) > new Date(b.createdTime)
+                ? a : b);
+
+    log(`Most recent export: ${mostRecent.name}`);
+    log("Downloading...");
+
+    const file = await downloadFile(mostRecent.id);
+
+    log(file);
+};
+
+const downloadFile = async id => {
+    try {
+        const { data } = await drive.files.get({
+            fileId: id,
+            alt: "media"
+        });
+
+        return data;
+    } catch({ errors }) {
+        log("Errors during file donwload:");
+        logJSON(errors);
+    }
+};
+
+module.exports = { getLatestDaylioExport };
