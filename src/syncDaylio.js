@@ -10,11 +10,13 @@ const parseAndSyncDaylio = async file => {
     log("Parsing file...")
     const records = parseDaylioCsv(file);
 
-    log("Parsed: ");
-    log(records);
+    // log("Parsed: ");
+    // log(records);
 
     log("Syncing to Exist...")
-    syncToExist(records);
+    await syncToExist(records);
+
+    log("Done!");
 };
 
 const syncToExist = async records => {
@@ -44,8 +46,6 @@ const syncToExist = async records => {
 
     log(`Syncing ${tags.length} tags to daylio....`);
     await appendTagsEndpoint(tags);
-
-    log("done!")
 };
 
 module.exports = { parseAndSyncDaylio, syncToExist };

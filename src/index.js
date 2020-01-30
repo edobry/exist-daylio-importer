@@ -39,15 +39,18 @@ const processFile = () =>
 
 const syncDaylioFile = async () => {
     const file = fs.readFileSync(nconf.get("file"), "UTF-8");
-
     await parseAndSyncDaylio(file);
+};
 
-    log("Done!");
+const syncLatestDaylioExport = async () => {
+    const file = await getLatestDaylioExport();
+    await parseAndSyncDaylio(file);
 };
 
 const actions = {
     processFile, getCode, getToken, getProfile, listOwnedAttributes,
-    acquireAttributes, appendTags, syncDaylioFile, getLatestDaylioExport
+    acquireAttributes, appendTags, syncDaylioFile, getLatestDaylioExport,
+    syncLatestDaylioExport
 };
 
 const requestedAction = nconf.get("action");

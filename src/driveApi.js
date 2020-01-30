@@ -85,7 +85,7 @@ const getLatestDaylioExport = async () => {
 
     const file = await downloadFile(mostRecent.id);
 
-    log(file);
+    return file;
 };
 
 const downloadFile = async id => {

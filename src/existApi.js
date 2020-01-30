@@ -6,7 +6,6 @@ const
     Wreck = require('@hapi/wreck');
 
 const client = nconf.get("client");
-logJSON(client);
 
 const auth = oauth2.create({
     client: nconf.get("client"),
@@ -41,8 +40,6 @@ methods.getToken = async () => {
     try {
         const result = await auth.authorizationCode.getToken(tokenConfig);
         const accessToken = auth.accessToken.create(result);
-
-        log(accessToken);
     } catch (error) {
         log('Access Token Error', error.message);
     }
@@ -105,7 +102,6 @@ methods.acquireAttributes = async () => {
 
 methods.appendTags = async () => {
     const tags = nconf.get("tags").split(',');
-    log(tags);
 
     const body = tags.map(tag => ({
         value: tag
@@ -118,7 +114,7 @@ methods.appendTagsEndpoint = async tags => {
     const { failed, success } = await existRequest("POST", "attributes/custom/append/", tags);
 
     log(`Result: ${success.length} suceeded, ${failed.length} failed`);
-    if(failed)
+    if(failed.length)
         logJSON(failed);
 };
 
@@ -126,7 +122,7 @@ methods.updateAttributes = async attrs => {
     const { failed, success } = await existRequest("POST", "attributes/update/", attrs);
 
     log(`Result: ${success.length} suceeded, ${failed.length} failed`);
-    if(failed)
+    if(failed.length)
         logJSON(failed);
 };
 
