@@ -9,16 +9,14 @@ nconf.argv().file("conf.json")
 const
     { log, logJSON } = require("./util"),
 
-    { parseAndSyncDaylio } = require("./syncDaylio");
+    { syncLatestDaylioExport } = require("./syncDaylio");
 
 exports.handler = async (event, context) => {
     log("EVENT: ");
     logJSON(event);
 
-    //parse zapier-mediated google drive webhook event
-    const { file } = event;
+    log("Fetching latest Daylio export...")
+    await syncLatestDaylioExport();
 
-    log(file);
-
-    parseAndSyncDaylio(file);
+    log("Done!");
 };
