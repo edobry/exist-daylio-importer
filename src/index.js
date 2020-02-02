@@ -14,7 +14,7 @@ const
     { streamDaylioExport } = require("./daylioParser"),
     { getCode, getToken, getProfile, listOwnedAttributes, acquireAttributes, appendTags } = require("./existApi"),
     { parseAndSyncDaylio } = require("./syncDaylio"),
-    { getLatestDaylioExport } = require("./driveApi");
+    { getLatestDaylioExport, watchFolder, watchDaylioFolder } = require("./driveApi");
 
 const pipeToStdout = stream => {
     process.stdout.on("error", err => {
@@ -42,15 +42,10 @@ const syncDaylioFile = async () => {
     await parseAndSyncDaylio(file);
 };
 
-const syncLatestDaylioExport = async () => {
-    const file = await getLatestDaylioExport();
-    await parseAndSyncDaylio(file);
-};
-
 const actions = {
     processFile, getCode, getToken, getProfile, listOwnedAttributes,
     acquireAttributes, appendTags, syncDaylioFile, getLatestDaylioExport,
-    syncLatestDaylioExport
+    syncLatestDaylioExport, watchFolder, watchDaylioFolder
 };
 
 const requestedAction = nconf.get("action");

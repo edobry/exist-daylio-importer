@@ -57,14 +57,18 @@ const queryDrive = async query => {
     return files;
 };
 
-const getLatestDaylioExport = async () => {
+const findDaylioFolderId = async () => {
     const folders = await queryDrive(
         folderNamed("Daylio"));
 
     if(folders.length > 1)
         throw new Error("More than one Daylio folder found!");
 
-    const { id: daylioFolderId } = folders[0];
+    return folders[0].id;
+}
+
+const getLatestDaylioExport = async () => {
+    const daylioFolderId = await findDaylioFolderId();
 
     log(`Daylio folder id: ${daylioFolderId}`);
 
@@ -102,4 +106,24 @@ const downloadFile = async id => {
     }
 };
 
-module.exports = { getLatestDaylioExport };
+const watchFolder = async id => {
+    const response = await drive.files.watch({
+        fileId: id,
+        requestBody: {
+            id: "exist-daylio-importer",
+            kind: "api#channel",
+            address: "https://importer.dobry.me/prod/",
+            type: "web_hook",
+            payload: true
+        }
+    });
+
+    logJSON(response);
+};
+
+const watchDaylioFolder = async () => {
+    const daylioFolderId = await findDaylioFolderId();
+    await watchFolder(daylioFolderId);
+};
+
+module.exports = { getLatestDaylioExport, watchFolder, watchDaylioFolder };
