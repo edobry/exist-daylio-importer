@@ -16,8 +16,6 @@ const parseAndSyncDaylio = async file => {
 
     log("Syncing to Exist...")
     await syncToExist(records);
-
-    log("Done!");
 };
 
 const syncLatestDaylioExport = async () => {

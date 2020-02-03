@@ -112,7 +112,7 @@ const watchFolder = async id => {
         requestBody: {
             id: "exist-daylio-importer",
             kind: "api#channel",
-            address: "https://importer.dobry.me/prod/",
+            address: "https://importer.dobry.me/exist/",
             type: "web_hook",
             payload: true
         }

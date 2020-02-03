@@ -13,8 +13,16 @@ const
 
     { streamDaylioExport } = require("./daylioParser"),
     { getCode, getToken, getProfile, listOwnedAttributes, acquireAttributes, appendTags } = require("./existApi"),
-    { parseAndSyncDaylio } = require("./syncDaylio"),
+    { parseAndSyncDaylio, syncLatestDaylioExport } = require("./syncDaylio"),
     { getLatestDaylioExport, watchFolder, watchDaylioFolder } = require("./driveApi");
+
+//TODO: implement logging library
+//TODO: detect, filter, new unmapped moods
+//TODO: handle sync event
+//TODO: reimplement streaming
+//TODO: configure eslint
+//TODO: set up packaging
+//TODO: set up deployment
 
 const pipeToStdout = stream => {
     process.stdout.on("error", err => {
