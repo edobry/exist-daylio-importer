@@ -11,7 +11,8 @@ const
 const parserConfig = {
     delimeter: ',',
     columns: true,
-    quote: "'"
+    quote: "'",
+    bom: true
 };
 
 const parser = csv(parserConfig);
@@ -55,6 +56,7 @@ const parseDaylioCsvFromStdin = () =>
     parseDaylioCsvStream(process.stdin);
 
 const parseDaylioCsv = content => {
+    //replace double quotes w/ single to aid in escaping
     const cleanedContent = content
         .replace(/"/g, "'");
 

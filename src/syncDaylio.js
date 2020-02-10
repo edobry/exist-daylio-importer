@@ -1,7 +1,8 @@
 const
     { log, logJSON } = require("./util"),
     { parseDaylioCsv } = require("./daylioParser"),
-    { updateAttributes, appendTagsEndpoint } = require("./existApi");
+    { updateAttributes, appendTagsEndpoint } = require("./existApi"),
+    { getLatestDaylioExport } = require("./driveApi");
 
 const normalizeTag = tag =>
     tag.replace(' ', '_');
@@ -10,11 +11,16 @@ const parseAndSyncDaylio = async file => {
     log("Parsing file...")
     const records = parseDaylioCsv(file);
 
-    log("Parsed: ");
-    log(records);
+    // log("Parsed: ");
+    // log(records);
 
     log("Syncing to Exist...")
-    syncToExist(records);
+    await syncToExist(records);
+};
+
+const syncLatestDaylioExport = async () => {
+    const file = await getLatestDaylioExport();
+    await parseAndSyncDaylio(file);
 };
 
 const syncToExist = async records => {
@@ -28,9 +34,10 @@ const syncToExist = async records => {
         agg.tags = agg.tags.concat(
             tags
                 .filter(tag => tag.length > 0)
-                .map(tag => ({
+                .map(normalizeTag)
+                .map(value => ({
                     date,
-                    value: normalizeTag(tag)
+                    value
                 }))
         );
 
@@ -39,13 +46,11 @@ const syncToExist = async records => {
         mood: [], tags: []
     });
 
-    log(`Syncing ${mood.length} mood records to daylio`);
+    log(`Syncing ${mood.length} mood records...`);
     await updateAttributes(mood);
 
-    log(`Syncing ${tags.length} tags to daylio....`);
+    log(`Syncing ${tags.length} tags...`);
     await appendTagsEndpoint(tags);
-
-    log("done!")
 };
 
-module.exports = { parseAndSyncDaylio, syncToExist };
+module.exports = { parseAndSyncDaylio, syncToExist, syncLatestDaylioExport };
