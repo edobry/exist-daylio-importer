@@ -2,7 +2,8 @@ const
     { log, logJSON } = require("./util"),
     { parseDaylioCsv } = require("./daylioParser"),
     { updateAttributes, appendTagsEndpoint } = require("./existApi"),
-    { getLatestDaylioExport } = require("./driveApi");
+    { getLatestDaylioExport } = require("./driveApi"),
+    { logDaylioSync } = require("./beeminderApi");
 
 const normalizeTag = tag =>
     tag.replace(' ', '_');
@@ -21,6 +22,7 @@ const parseAndSyncDaylio = async file => {
 const syncLatestDaylioExport = async () => {
     const file = await getLatestDaylioExport();
     await parseAndSyncDaylio(file);
+    await logDaylioSync();
 };
 
 const syncToExist = async records => {
