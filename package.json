@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@hapi/wreck": "^16.0.1",
+    "beeminder": "^1.6.2",
     "csv-parse": "^4.8.2",
     "googleapis": "^47.0.0",
     "nconf": "^0.10.0",
