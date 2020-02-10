@@ -119,7 +119,15 @@ methods.appendTagsEndpoint = async tags => {
 };
 
 methods.updateAttributes = async attrs => {
-    const { failed, success } = await existRequest("POST", "attributes/update/", attrs);
+    const body = await existRequest("POST", "attributes/update/", attrs);
+
+    const { failed, success } = body;
+
+    if(!success) {
+        logJSON(body);
+        throw new Error("Unknown error!");
+    }
+
 
     log(`Result: ${success.length} suceeded, ${failed.length} failed`);
     if(failed.length)
