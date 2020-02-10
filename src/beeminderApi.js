@@ -19,14 +19,28 @@ const getDaylioGoal = async () => {
 const logDaylioSync = async () => {
     log("Logging to Beeminder...");
 
-    const response = await bm.createDatapoint(daylioGoalName, {
-        value: 1,
-        comment: "logged from exist-daylio-importer",
-        sendmail: true,
-        requestid: "test-request"
-    });
+    try {
+        const response = await bm.createDatapoint(daylioGoalName, {
+            value: 1,
+            comment: "logged from exist-daylio-importer",
+            sendmail: true,
+            requestid: new Date().toLocaleDateString()
+        });
 
-    logJSON(response);
+        const { id, status } = response;
+
+        log(`Beeminder datapoint '${id}' ${status}`);
+
+        return response;
+    } catch(e) {
+        if(e == "Duplicate request")
+            return;
+
+        else {
+            log(e);
+            throw new Error("Unknown error!");
+        }
+    }
 };
 
 module.exports = { getDaylioGoal, logDaylioSync }
