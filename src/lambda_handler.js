@@ -33,6 +33,7 @@ const handleEvent = async event => {
         log("Request body:");
         logJSON(body);
     }
+
 };
 
 const handleGoogleEvent = headers => {
