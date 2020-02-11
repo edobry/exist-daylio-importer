@@ -1,5 +1,5 @@
 const
-    beeminder = require("beeminder"),
+    got = require("got"),
     nconf = require("nconf");
 
 nconf.argv().file("conf.json");
