@@ -7,14 +7,13 @@ nconf.argv().file("conf.json");
 const
     { log, logJSON } = require("./util");
 
-const { username, auth_token } = nconf.get("beeminder");
+const { username, auth_token, goalName } = nconf.get("beeminder");
 
 const baseUrl = "https://www.beeminder.com/api/v1";
 
 const goalEndpoint = "goals"
 
-const daylioGoalName = "daylio-checkins";
-const daylioGoalUrl = `users/${username}/${goalEndpoint}/${daylioGoalName}`;
+const daylioGoalUrl = `users/${username}/${goalEndpoint}/${goalName}`;
 
 const bmApi = got.extend({
     prefixUrl: baseUrl,
