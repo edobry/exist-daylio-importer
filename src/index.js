@@ -14,7 +14,8 @@ const
     { streamDaylioExport } = require("./daylioParser"),
     { getCode, getToken, getProfile, listOwnedAttributes, acquireAttributes, appendTags } = require("./existApi"),
     { parseAndSyncDaylio, syncLatestDaylioExport } = require("./syncDaylio"),
-    { getLatestDaylioExport, watchFolder, watchDaylioFolder } = require("./driveApi");
+    { getLatestDaylioExport, watchFolder, watchDaylioFolder } = require("./driveApi"),
+    { getDaylioGoal, logDaylioSync } = require("./beeminderApi");
 
 //TODO: implement logging library
 //TODO: detect, filter, new unmapped moods
@@ -53,7 +54,7 @@ const syncDaylioFile = async () => {
 const actions = {
     processFile, getCode, getToken, getProfile, listOwnedAttributes,
     acquireAttributes, appendTags, syncDaylioFile, getLatestDaylioExport,
-    syncLatestDaylioExport, watchFolder, watchDaylioFolder
+    syncLatestDaylioExport, watchFolder, watchDaylioFolder, getDaylioGoal, logDaylioSync
 };
 
 const requestedAction = nconf.get("action");

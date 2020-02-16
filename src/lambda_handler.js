@@ -14,18 +14,20 @@ const
 const handleEvent = async event => {
     const { resource, path, httpMethod, headers, requestContext, body } = event;
 
-    const { identity: { sourceIp, userAgent } } = requestContext;
+    if(requestContext.identity) {
+        const { identity: { sourceIp, userAgent } } = requestContext;
 
-    log(`Received a ${httpMethod} request for ${resource} from ${sourceIp} with a user-agent of ${userAgent}`);
+        log(`Received a ${httpMethod} request for ${resource} from ${sourceIp} with a user-agent of ${userAgent}`);
 
-    if(userAgent.includes("APIs-Google")) {
-        const state = handleGoogleEvent(headers);
-        if(state == "sync")
-            return;
+        if(userAgent.includes("APIs-Google")) {
+            const state = handleGoogleEvent(headers);
+            if(state == "sync")
+                return;
 
-        if(["add", "update"].includes(state)) {
-            log("Fetching latest Daylio export...");
-            await syncLatestDaylioExport();
+            if(["add", "update"].includes(state)) {
+                log("Fetching latest Daylio export...");
+                await syncLatestDaylioExport();
+            }
         }
     }
 
@@ -33,6 +35,8 @@ const handleEvent = async event => {
         log("Request body:");
         logJSON(body);
     }
+
+    return true;
 };
 
 const handleGoogleEvent = headers => {
